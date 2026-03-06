@@ -1,6 +1,8 @@
 .venv/
 .env
 data/*.db
+data/*.db-shm
+data/*.db-wal
 data/cache/
 __pycache__/
 *.pyc
@@ -13,11 +15,6 @@ exports/
 *.remote
 *.remote.bak
 .DS_Store
-.venv/
-patent_space_mcp.egg-info/
-.pytest_cache/
-data/
-*.db
-*.db-*
-__pycache__/
-.env
+*.bak
+*.bak_*
+data/quality_issues.json

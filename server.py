@@ -7,6 +7,9 @@ import os
 import sqlite3
 import unicodedata
 from pathlib import Path
+from typing import Annotated
+
+from pydantic import Field
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
@@ -53,6 +56,11 @@ from tools.portfolio_evolution import portfolio_evolution
 from tools.tech_trend_alert import tech_trend_alert
 from tools.sales_prospect import sales_prospect
 from tools.bayesian_scenario import bayesian_scenario
+from tools.citation_network import citation_network
+from tools.tech_trend import tech_trend
+from tools.ma_target import ma_target
+from tools.patent_finance import patent_option_value, tech_volatility, portfolio_var, tech_beta
+from tools.network_analysis import network_topology, knowledge_flow, network_resilience, tech_fusion_detector, tech_entropy
 
 load_dotenv()
 
@@ -367,6 +375,66 @@ _VIS_HINTS = {
             "center_value": "fusion_score",
         },
         "suggested_options": {"show_benchmark": True, "fill_opacity": 0.3},
+    },
+    "citation_network": {
+        "recommended_chart": "network",
+        "title": "引用ネットワーク",
+        "data_mapping": {"nodes": "nodes[].id", "edges": "edges[]", "node_size": "nodes[].forward_citations"},
+    },
+    "tech_trend": {
+        "recommended_chart": "line_with_bar",
+        "title": "技術トレンド",
+        "data_mapping": {"x": "timeline[].year", "y_line": "timeline[].avg_growth_rate", "y_bar": "timeline[].total_patent_count"},
+    },
+    "ma_target": {
+        "recommended_chart": "scatter",
+        "title": "M&Aターゲット",
+        "data_mapping": {"x": "results[].tech_similarity", "y": "results[].synergy_score", "size": "results[].patent_count"},
+    },
+    "patent_option_value": {
+        "recommended_chart": "bar",
+        "title": "特許オプション価値",
+        "data_mapping": {"labels": "top_value_patents[].patent", "values": "top_value_patents[].option_value"},
+    },
+    "tech_volatility": {
+        "recommended_chart": "dual_axis",
+        "title": "技術ボラティリティ",
+        "data_mapping": {"x": "timeline[].year", "y_left": "timeline[].patent_count", "y_right": "timeline[].log_return"},
+    },
+    "portfolio_var": {
+        "recommended_chart": "stacked_bar",
+        "title": "ポートフォリオVaR",
+        "data_mapping": {"labels": "var_at_risk_cpc[].cpc", "values": "var_at_risk_cpc[].loss_rate"},
+    },
+    "tech_beta": {
+        "recommended_chart": "scatter",
+        "title": "技術ベータ",
+        "data_mapping": {"x": "market_return", "y": "tech_return", "label": "cpc_prefix"},
+    },
+    "network_topology": {
+        "recommended_chart": "network",
+        "title": "引用ネットワークトポロジー",
+        "data_mapping": {"nodes": "hub_patents[].patent", "node_size": "hub_patents[].cited_by"},
+    },
+    "knowledge_flow": {
+        "recommended_chart": "sankey",
+        "title": "知識フロー",
+        "data_mapping": {"source": "flow_pairs[].from", "target": "flow_pairs[].to", "value": "flow_pairs[].count"},
+    },
+    "network_resilience": {
+        "recommended_chart": "line",
+        "title": "ネットワークレジリエンス",
+        "data_mapping": {"x": "removal_pct", "y": "largest_component_pct", "series": ["targeted", "random"]},
+    },
+    "tech_fusion_detector": {
+        "recommended_chart": "line",
+        "title": "技術融合検出",
+        "data_mapping": {"x": "fusion_timeline.years", "y": "fusion_timeline.co_citation_count"},
+    },
+    "tech_entropy": {
+        "recommended_chart": "dual_axis",
+        "title": "技術エントロピー",
+        "data_mapping": {"x": "entropy_timeline[].year", "y_left": "entropy_timeline[].entropy", "y_right": "entropy_timeline[].total_filings"},
     },
 }
 
@@ -1373,6 +1441,314 @@ def tool_bayesian_scenario(
         session_id=session_id, parameter=parameter,
         user_value=user_value, user_confidence=user_confidence)
 # =====================================================================
+# Tool 27: citation_network
+# =====================================================================
+@mcp.tool()
+def tool_citation_network(
+    publication_number: Annotated[str | None, Field(description="Seed patent publication number (e.g., 'JP-7637366-B1'). Required for patent mode.")] = None,
+    firm_query: Annotated[str | None, Field(description="Company name or ticker for firm mode. Finds top-cited patents as seeds.")] = None,
+    depth: Annotated[int, Field(description="BFS traversal depth (1 or 2). Default: 1.")] = 1,
+    direction: Annotated[str, Field(description='"forward" (who cites this), "backward" (what this cites), or "both" (default).')] = "both",
+    max_nodes: Annotated[int, Field(description="Maximum nodes in the network (default: 50, max: 200).")] = 50,
+) -> dict:
+    """Build a patent citation network around a patent or firm's top patents.
+
+    Two modes: patent mode (BFS from a single patent) or firm mode
+    (finds firm's most-cited patents, builds network from those).
+    Returns graph structure with nodes, edges, and hub patent identification.
+    """
+    raw = _safe_call(citation_network, _timeout=60,
+        store=_store, resolver=_resolver,
+        publication_number=publication_number, firm_query=firm_query,
+        depth=depth, direction=direction, max_nodes=max_nodes)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 28: tech_trend
+# =====================================================================
+@mcp.tool()
+def tool_tech_trend(
+    query: Annotated[str, Field(description="Technology keyword (e.g., '全固体電池'), CPC code (e.g., 'H01M'), or cluster_id.")] = "",
+    cpc_prefix: Annotated[str | None, Field(description="Optional CPC prefix filter (e.g., 'H01M').")] = None,
+    year_from: Annotated[int, Field(description="Start year (default: 2016).")] = 2016,
+    year_to: Annotated[int, Field(description="End year (default: 2024).")] = 2024,
+    top_n: Annotated[int, Field(description="Maximum results per category (default: 20).")] = 20,
+) -> dict:
+    """Analyze time-series technology trends with growth rates and new entrants.
+
+    Given a technology query, returns year-by-year filing trends, growth rates,
+    acceleration, new entrant detection, and sub-area breakdown. Supports
+    Japanese/English keywords, CPC codes, and cluster IDs.
+    """
+    raw = _safe_call(tech_trend, _timeout=45,
+        store=_store, resolver=_resolver,
+        query=query, cpc_prefix=cpc_prefix,
+        year_from=year_from, year_to=year_to, top_n=top_n)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 29: ma_target
+# =====================================================================
+@mcp.tool()
+def tool_ma_target(
+    acquirer: Annotated[str, Field(description="Acquiring company name (any language) or stock ticker.")],
+    strategy: Annotated[str, Field(description='"tech_gap" (complementary), "consolidation" (overlap), or "diversification" (new markets).')] = "tech_gap",
+    top_n: Annotated[int, Field(description="Number of target candidates (default: 10).")] = 10,
+    year: Annotated[int, Field(description="Analysis year (default: 2024).")] = 2024,
+) -> dict:
+    """Recommend M&A acquisition targets based on patent portfolio analysis.
+
+    Three strategies: "tech_gap" finds firms with complementary technology
+    (fills acquirer's weak areas), "consolidation" finds firms with high
+    overlap (strengthens market position), "diversification" finds firms
+    in unrelated CPC sections (opens new markets).
+    """
+    raw = _safe_call(ma_target, _timeout=60,
+        store=_store, resolver=_resolver,
+        acquirer=acquirer, strategy=strategy, top_n=top_n, year=year)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 30: patent_option_value (Black-Scholes real option valuation)
+# =====================================================================
+@mcp.tool()
+def tool_patent_option_value(
+    query: Annotated[str, Field(description="Patent number (JP-XXXXX-B1), company name, or CPC code.")],
+    query_type: Annotated[str | None, Field(description='"patent", "firm", or "technology" (auto-detected if omitted).')] = None,
+    S: Annotated[float | None, Field(description="Underlying asset value (auto-estimated if omitted).")] = None,
+    K: Annotated[float | None, Field(description="Strike price (auto-estimated if omitted).")] = None,
+    risk_free_rate: Annotated[float, Field(description="Risk-free rate (default: 0.02).")] = 0.02,
+    year: Annotated[int, Field(description="Analysis year (default: 2024).")] = 2024,
+) -> dict:
+    """Black-Scholes real option valuation for patents.
+
+    Treats patents as real options: the right to commercialize technology.
+    Computes option value, Greeks (delta, theta, vega), and citation-adjusted value.
+    For firms: portfolio option value with top-10 most valuable patents.
+    For technology: area-average option value with top players.
+
+    S and K can be user-specified or auto-estimated from filing density and royalty benchmarks.
+    """
+    raw = _safe_call(patent_option_value, _timeout=45,
+        store=_store, resolver=_resolver,
+        query=query, query_type=query_type,
+        S=S, K=K, risk_free_rate=risk_free_rate, year=year)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 31: tech_volatility
+# =====================================================================
+@mcp.tool()
+def tool_tech_volatility(
+    query: Annotated[str, Field(description="CPC code (e.g., 'H01M'), keyword, or company name.")],
+    query_type: Annotated[str | None, Field(description='"technology", "text", or "firm".')] = None,
+    date_from: Annotated[str, Field(description="Start date YYYY-MM-DD (default: 2015-01-01).")] = "2015-01-01",
+    date_to: Annotated[str, Field(description="End date YYYY-MM-DD (default: 2024-12-31).")] = "2024-12-31",
+) -> dict:
+    """Technology volatility analysis with decay curve and half-life.
+
+    Computes log-return volatility (sigma), drift, tech Sharpe ratio,
+    and regime classification. Includes citation decay curve with half-life
+    and percentile ranking vs all technologies.
+    """
+    raw = _safe_call(tech_volatility, _timeout=45,
+        store=_store, resolver=_resolver,
+        query=query, query_type=query_type,
+        date_from=date_from, date_to=date_to)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 32: portfolio_var
+# =====================================================================
+@mcp.tool()
+def tool_portfolio_var(
+    firm: Annotated[str, Field(description="Company name (any language) or stock ticker.")],
+    horizon_years: Annotated[int, Field(description="Risk horizon in years (default: 5).")] = 5,
+    confidence: Annotated[float, Field(description="VaR confidence level (default: 0.95).")] = 0.95,
+    year: Annotated[int, Field(description="Analysis year (default: 2024).")] = 2024,
+) -> dict:
+    """Portfolio Value-at-Risk for patent expiration risk.
+
+    Analyzes which patents expire within the horizon, calculates CPC-level
+    defense loss rates, identifies competitor threats from startability_surface,
+    and estimates option-value-weighted VaR.
+    """
+    raw = _safe_call(portfolio_var, _timeout=60,
+        store=_store, resolver=_resolver,
+        firm=firm, horizon_years=horizon_years,
+        confidence=confidence, year=year)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 33: tech_beta
+# =====================================================================
+@mcp.tool()
+def tool_tech_beta(
+    query: Annotated[str, Field(description="CPC code (e.g., 'H01M') or company name.")],
+    query_type: Annotated[str | None, Field(description='"technology" or "firm".')] = None,
+    benchmark: Annotated[str, Field(description='"all" (full market) or "section" (same CPC section).')] = "all",
+    date_from: Annotated[str, Field(description="Start date YYYY-MM-DD (default: 2015-01-01).")] = "2015-01-01",
+    date_to: Annotated[str, Field(description="End date YYYY-MM-DD (default: 2024-12-31).")] = "2024-12-31",
+) -> dict:
+    """CAPM-style technology beta: market sensitivity analysis.
+
+    Computes beta (market co-movement), alpha (excess return), R-squared,
+    and classifies technology as growth/cyclical/niche/mature.
+    Includes peer comparison with same-section technologies.
+    """
+    raw = _safe_call(tech_beta, _timeout=30,
+        store=_store, resolver=_resolver,
+        query=query, query_type=query_type,
+        benchmark=benchmark, date_from=date_from, date_to=date_to)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 34: network_topology
+# =====================================================================
+@mcp.tool()
+def tool_network_topology(
+    cpc_prefix: Annotated[str | None, Field(description="CPC prefix for technology area (e.g., 'H01M').")] = None,
+    firm: Annotated[str | None, Field(description="Company name to analyze citation network.")] = None,
+    max_patents: Annotated[int, Field(description="Max patents in network (default: 500, max: 1000).")] = 500,
+    year: Annotated[int, Field(description="Analysis year (default: 2024).")] = 2024,
+) -> dict:
+    """Citation network topology analysis.
+
+    Analyzes scale-free properties (power law gamma), small-world index,
+    clustering coefficient, hub patents, and technology communities.
+    All graph algorithms are self-contained (no networkx).
+    """
+    raw = _safe_call(network_topology, _timeout=60,
+        store=_store, resolver=_resolver,
+        cpc_prefix=cpc_prefix, firm=firm,
+        max_patents=max_patents, year=year)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 35: knowledge_flow
+# =====================================================================
+@mcp.tool()
+def tool_knowledge_flow(
+    source_cpc: Annotated[str | None, Field(description="Knowledge source CPC (e.g., 'G06N' for AI).")] = None,
+    target_cpc: Annotated[str | None, Field(description="Knowledge target CPC.")] = None,
+    firm: Annotated[str | None, Field(description="Filter by company name.")] = None,
+    date_from: Annotated[str, Field(description="Start date YYYY-MM-DD (default: 2018-01-01).")] = "2018-01-01",
+    date_to: Annotated[str, Field(description="End date YYYY-MM-DD (default: 2024-12-31).")] = "2024-12-31",
+    top_n: Annotated[int, Field(description="Max results per category (default: 20).")] = 20,
+) -> dict:
+    """Cross-CPC knowledge flow analysis.
+
+    Maps knowledge transfer between technology domains via citation patterns.
+    Identifies knowledge exporters (foundational tech) and importers (applied tech),
+    spillover rates, and top flow pairs.
+    """
+    raw = _safe_call(knowledge_flow, _timeout=60,
+        store=_store, resolver=_resolver,
+        source_cpc=source_cpc, target_cpc=target_cpc,
+        firm=firm, date_from=date_from, date_to=date_to, top_n=top_n)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 36: network_resilience
+# =====================================================================
+@mcp.tool()
+def tool_network_resilience(
+    firm: Annotated[str | None, Field(description="Company name to analyze.")] = None,
+    cpc_prefix: Annotated[str | None, Field(description="CPC prefix for technology area.")] = None,
+    attack_mode: Annotated[str, Field(description='"targeted" (hub removal) or "random".')] = "targeted",
+    removal_steps: Annotated[int, Field(description="Number of removal steps (default: 10).")] = 10,
+    max_patents: Annotated[int, Field(description="Max patents in network (default: 500).")] = 500,
+) -> dict:
+    """Patent network resilience (percolation theory).
+
+    Simulates targeted (hub) and random node removal to measure fragility.
+    Scale-free networks are robust to random failure but vulnerable to
+    targeted hub attacks. Returns collapse thresholds, vulnerability index,
+    and critical patents whose expiration would fragment the network.
+    """
+    raw = _safe_call(network_resilience, _timeout=60,
+        store=_store, resolver=_resolver,
+        firm=firm, cpc_prefix=cpc_prefix,
+        attack_mode=attack_mode, removal_steps=removal_steps,
+        max_patents=max_patents)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 37: tech_fusion_detector
+# =====================================================================
+@mcp.tool()
+def tool_tech_fusion_detector(
+    cpc_a: Annotated[str | None, Field(description="First CPC area (e.g., 'G06N').")] = None,
+    cpc_b: Annotated[str | None, Field(description="Second CPC area (e.g., 'A61K').")] = None,
+    firm: Annotated[str | None, Field(description="Filter by company name.")] = None,
+    date_from: Annotated[str, Field(description="Start date YYYY-MM-DD (default: 2015-01-01).")] = "2015-01-01",
+    date_to: Annotated[str, Field(description="End date YYYY-MM-DD (default: 2024-12-31).")] = "2024-12-31",
+    min_co_citation: Annotated[int, Field(description="Min co-citations to detect fusion (default: 5).")] = 5,
+) -> dict:
+    """Technology fusion detector via co-citation analysis.
+
+    Detects convergence between technology domains. In pair mode, tracks
+    year-by-year co-citation growth. In auto-detect mode, scans for
+    emerging fusions across all domains. Returns fusion stage, bridge
+    patents, and key players.
+    """
+    raw = _safe_call(tech_fusion_detector, _timeout=60,
+        store=_store, resolver=_resolver,
+        cpc_a=cpc_a, cpc_b=cpc_b,
+        firm=firm, date_from=date_from, date_to=date_to,
+        min_co_citation=min_co_citation)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+# =====================================================================
+# Tool 38: tech_entropy
+# =====================================================================
+@mcp.tool()
+def tool_tech_entropy(
+    cpc_prefix: Annotated[str | None, Field(description="CPC prefix (e.g., 'H01M').")] = None,
+    query: Annotated[str | None, Field(description="Technology keyword (e.g., '電池').")] = None,
+    date_from: Annotated[str, Field(description="Start date YYYY-MM-DD (default: 2015-01-01).")] = "2015-01-01",
+    date_to: Annotated[str, Field(description="End date YYYY-MM-DD (default: 2024-12-31).")] = "2024-12-31",
+    granularity: Annotated[str, Field(description='"year" or "quarter" (default: year).')] = "year",
+) -> dict:
+    """Technology maturity via Shannon entropy of applicant diversity.
+
+    Measures applicant concentration (Shannon entropy, HHI) over time to
+    classify lifecycle stage: introduction, growth, mature, or declining.
+    Identifies dominant players, new entrants, and consolidation trends.
+    """
+    raw = _safe_call(tech_entropy, _timeout=60,
+        store=_store, resolver=_resolver,
+        cpc_prefix=cpc_prefix, query=query,
+        date_from=date_from, date_to=date_to,
+        granularity=granularity)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
+
+# =====================================================================
 # Infrastructure: argument parsing, cache warm-up, HTTP app
 # =====================================================================
 
@@ -1511,7 +1887,13 @@ def _custom_http_app():
         _ALL_TOOL_NAMES = sorted(set(list(_VIS_HINTS.keys()) + [
             "similar_firms", "tech_gap", "cross_border_similarity",
             "patent_valuation", "portfolio_evolution", "tech_trend_alert",
+            "similar_firms", "tech_gap", "cross_border_similarity",
+            "patent_valuation", "portfolio_evolution", "tech_trend_alert",
             "sales_prospect", "bayesian_scenario",
+            "citation_network", "tech_trend", "ma_target",
+            "patent_option_value", "tech_volatility", "portfolio_var", "tech_beta",
+            "network_topology", "knowledge_flow", "network_resilience",
+            "tech_fusion_detector", "tech_entropy",
         ]))
         return JSONResponse({
             "status": "ok" if db_ok else "degraded",
@@ -1580,3 +1962,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
