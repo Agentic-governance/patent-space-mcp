@@ -9237,6 +9237,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '信越化学工業株式会社',
+        
+            'SHIN-ETSU CHEMICAL CO LTD',
+            'Shin-Etsu',
+            'Shin-Etsu Chemical',
         },
         industry='3200',
         ticker='4063',
@@ -13685,6 +13689,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '富士フイルムホールディングス株式会社',
             '富士フイルム株式会社',
+        
+            'FUJIFILM',
+            'FUJIFILM HOLDINGS CORP',
+            'Fujifilm',
         },
         industry='3200',
         ticker='4901',
@@ -17909,6 +17917,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             'オークマ株式会社',
             '株式会社オークマ',
+        
+            'OKUMA CORP',
+            'Okuma',
         },
         industry='3600',
         ticker='6103',
@@ -18930,6 +18941,8 @@ TSE_AUTO_ENTITIES: list[Entity] = [
             'Smc Corp',
             'Smc株式会社',
             'Ｓｍｃ株式会社',
+        
+            'SMC Corporation',
         },
         industry='3600',
         ticker='6273',
@@ -19251,6 +19264,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '有限会社クボタ',
             '株式会社クボタ',
+        
+            'KUBOTA CORP',
+            'Kubota',
+            'Kubota Corporation',
         },
         industry='3600',
         ticker='6326',
@@ -19592,6 +19609,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'ダイキン工業株式会社',
+        
+            'DAIKIN INDUSTRIES LTD',
+            'Daikin',
+            'Daikin Industries',
         },
         industry='3600',
         ticker='6367',
@@ -20300,6 +20321,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '株式会社ジェイテクト',
+        
+            'JTEKT',
+            'JTEKT CORP',
+            'JTEKT Corporation',
         },
         industry='3600',
         ticker='6473',
@@ -20324,6 +20349,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'ミネベアミツミ株式会社',
+        
+            'MINEBEA MITSUMI',
+            'MINEBEA MITSUMI INC',
+            'MinebeaMitsumi',
         },
         industry='3650',
         ticker='6479',
@@ -20548,6 +20577,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '東洋電機製造株式会社',
+        
+            'TOYO ELECTRIC MFG CO LTD',
+            'Toyo Electric',
         },
         industry='3650',
         ticker='6505',
@@ -20561,6 +20593,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '株式会社  安川電機',
             '株式会社安川電機',
+        
+            'YASKAWA ELECTRIC CORP',
+            'Yaskawa',
+            'Yaskawa Electric',
         },
         industry='3650',
         ticker='6506',
@@ -20944,6 +20980,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '有限会社マキタ',
             '株式会社マキタ',
+        
+            'MAKITA CORP',
+            'Makita',
         },
         industry='3600',
         ticker='6586',
@@ -21495,6 +21534,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '日本電気株式会社',
+        
+            'NEC',
+            'NEC CORP',
+            'NEC Corporation',
         },
         industry='3650',
         ticker='6701',
@@ -21555,6 +21598,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'ルネサスエレクトロニクス株式会社',
+        
+            'RENESAS ELECTRONICS CORP',
+            'Renesas',
+            'Renesas Electronics',
         },
         industry='3650',
         ticker='6723',
@@ -21776,6 +21823,11 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             'パナソニックホールディングス株式会社',
             'パナソニック株式会社',
+        
+            'PANASONIC HOLDINGS CORP',
+            'Panasonic',
+            'Panasonic Corporation',
+            'Panasonic Holdings',
         },
         industry='3650',
         ticker='6752',
@@ -21813,6 +21865,11 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             'ソニーグループ株式会社',
             'ソニー株式会社',
+        
+            'SONY GROUP CORP',
+            'Sony',
+            'Sony Corporation',
+            'Sony Group',
         },
         industry='3650',
         ticker='6758',
@@ -21861,6 +21918,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'アルプスアルパイン株式会社',
+        
+            'ALPS ALPINE CO LTD',
+            'Alps Alpine',
         },
         industry='3650',
         ticker='6770',
@@ -22301,6 +22361,11 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '横河電機株式会社',
+        
+            'YOKOGAWA ELECTRIC CORP',
+            'Yokogawa',
+            'Yokogawa Electric',
+            'Yokogawa Electric Corporation',
         },
         industry='3650',
         ticker='6841',
@@ -22397,6 +22462,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '株式会社堀場製作所',
+        
+            'HORIBA LTD',
+            'Horiba',
         },
         industry='3650',
         ticker='6856',
@@ -22409,6 +22477,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '株式会社アドバンテスト',
+        
+            'ADVANTEST CORP',
+            'Advantest',
+            'Advantest Corporation',
         },
         industry='3650',
         ticker='6857',
@@ -22494,6 +22566,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'シスメックス株式会社',
+        
+            'SYSMEX CORP',
+            'Sysmex',
         },
         industry='3650',
         ticker='6869',
@@ -22921,6 +22996,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'カシオ計算機株式会社',
+        
+            'CASIO COMPUTER CO LTD',
+            'Casio',
+            'Casio Computer',
         },
         industry='3650',
         ticker='6952',
@@ -23014,6 +23093,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '浜松ホトニクス株式会社',
+        
+            'HAMAMATSU PHOTONICS KK',
+            'Hamamatsu',
+            'Hamamatsu Photonics',
         },
         industry='3650',
         ticker='6965',
@@ -23050,6 +23133,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '太陽誘電株式会社',
+        
+            'TAIYO YUDEN CO LTD',
+            'Taiyo Yuden',
         },
         industry='3650',
         ticker='6976',
@@ -23207,6 +23293,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'カナデビア株式会社',
+        
+            'SHIMADZU CORP',
+            'Shimadzu',
+            'Shimadzu Corporation',
         },
         industry='3600',
         ticker='7004',
@@ -23220,6 +23310,11 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '三菱重工業  株式会社',
             '三菱重工業株式会社',
+        
+            'MHI',
+            'MITSUBISHI HEAVY INDUSTRIES LTD',
+            'Mitsubishi Heavy',
+            'Mitsubishi Heavy Industries',
         },
         industry='3600',
         ticker='7011',
@@ -23232,6 +23327,11 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '川崎重工業株式会社',
+        
+            'KAWASAKI HEAVY INDUSTRIES LTD',
+            'Kawasaki',
+            'Kawasaki Heavy',
+            'Kawasaki Heavy Industries',
         },
         industry='3700',
         ticker='7012',
@@ -23754,6 +23854,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '日野自動車株式会社',
+        
+            'HINO MOTORS LTD',
+            'Hino Motors',
         },
         industry='3700',
         ticker='7205',
@@ -24004,6 +24107,8 @@ TSE_AUTO_ENTITIES: list[Entity] = [
             'Nok Corp',
             'Nok株式会社',
             'Ｎｏｋ株式会社',
+        
+            'NOK Corporation',
         },
         industry='3700',
         ticker='7240',
@@ -24139,6 +24244,11 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '有限会社アイシン',
             '株式会社アイシン',
+        
+            'AISIN CORP',
+            'Aisin',
+            'Aisin Corporation',
+            'Aisin Seiki',
         },
         industry='3700',
         ticker='7259',
@@ -24409,6 +24519,9 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         aliases={
             '株式会社  シマノ',
             '株式会社シマノ',
+        
+            'SHIMANO INC',
+            'Shimano',
         },
         industry='3700',
         ticker='7309',
@@ -26107,6 +26220,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             '株式会社ニコン',
+        
+            'NIKON CORP',
+            'Nikon',
+            'Nikon Corporation',
         },
         industry='3750',
         ticker='7731',
@@ -26119,6 +26236,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'オリンパス株式会社',
+        
+            'OLYMPUS CORP',
+            'Olympus',
+            'Olympus Corporation',
         },
         industry='3750',
         ticker='7733',
@@ -26274,6 +26395,10 @@ TSE_AUTO_ENTITIES: list[Entity] = [
         entity_type='corporation',
         aliases={
             'シチズン時計株式会社',
+        
+            'CITIZEN WATCH CO LTD',
+            'Citizen',
+            'Citizen Watch',
         },
         industry='3750',
         ticker='7762',

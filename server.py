@@ -60,6 +60,7 @@ from tools.citation_network import citation_network
 from tools.tech_trend import tech_trend
 from tools.ma_target import ma_target
 from tools.patent_finance import patent_option_value, tech_volatility, portfolio_var, tech_beta
+from tools.ip_due_diligence import ip_due_diligence
 from tools.network_analysis import network_topology, knowledge_flow, network_resilience, tech_fusion_detector, tech_entropy
 
 load_dotenv()
@@ -134,6 +135,23 @@ def _enrich_firm_ids(result: dict | list) -> dict | list:
 
 _db_path = os.getenv("PATENT_DB_PATH", "data/patents.db")
 _store = PatentStore(_db_path)
+
+# ── Speed optimizations for read-heavy workload ──
+def _apply_read_pragmas():
+    """Apply SQLite PRAGMAs for read performance on NVMe."""
+    try:
+        conn = _store._conn()
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA cache_size=-131072")   # 128MB page cache (was default ~2MB)
+        conn.execute("PRAGMA mmap_size=4294967296")  # 4GB mmap for fast random reads
+        conn.execute("PRAGMA read_uncommitted=ON")   # Don't wait for WAL writer
+        conn.execute("PRAGMA temp_store=MEMORY")     # temp tables in RAM
+        conn.execute("PRAGMA busy_timeout=10000")    # 10s retry on locks
+        print(f"Applied read-optimized PRAGMAs (cache=128MB, mmap=4GB)")
+    except Exception as e:
+        print(f"Warning: Could not apply PRAGMAs: {e}")
+
+_apply_read_pragmas()
 
 def _safe_call(fn, *args, _tool_name=None, _timeout=120, **kwargs):
     """Call a tool function with graceful timeout handling.
@@ -1457,7 +1475,7 @@ def tool_citation_network(
     (finds firm's most-cited patents, builds network from those).
     Returns graph structure with nodes, edges, and hub patent identification.
     """
-    raw = _safe_call(citation_network, _timeout=60,
+    raw = _safe_call(citation_network, _timeout=120,
         store=_store, resolver=_resolver,
         publication_number=publication_number, firm_query=firm_query,
         depth=depth, direction=direction, max_nodes=max_nodes)
@@ -1482,7 +1500,7 @@ def tool_tech_trend(
     acceleration, new entrant detection, and sub-area breakdown. Supports
     Japanese/English keywords, CPC codes, and cluster IDs.
     """
-    raw = _safe_call(tech_trend, _timeout=45,
+    raw = _safe_call(tech_trend, _timeout=120,
         store=_store, resolver=_resolver,
         query=query, cpc_prefix=cpc_prefix,
         year_from=year_from, year_to=year_to, top_n=top_n)
@@ -1507,7 +1525,7 @@ def tool_ma_target(
     overlap (strengthens market position), "diversification" finds firms
     in unrelated CPC sections (opens new markets).
     """
-    raw = _safe_call(ma_target, _timeout=60,
+    raw = _safe_call(ma_target, _timeout=120,
         store=_store, resolver=_resolver,
         acquirer=acquirer, strategy=strategy, top_n=top_n, year=year)
     if isinstance(raw, dict) and "error" in raw:
@@ -1535,7 +1553,7 @@ def tool_patent_option_value(
 
     S and K can be user-specified or auto-estimated from filing density and royalty benchmarks.
     """
-    raw = _safe_call(patent_option_value, _timeout=45,
+    raw = _safe_call(patent_option_value, _timeout=120,
         store=_store, resolver=_resolver,
         query=query, query_type=query_type,
         S=S, K=K, risk_free_rate=risk_free_rate, year=year)
@@ -1559,7 +1577,7 @@ def tool_tech_volatility(
     and regime classification. Includes citation decay curve with half-life
     and percentile ranking vs all technologies.
     """
-    raw = _safe_call(tech_volatility, _timeout=45,
+    raw = _safe_call(tech_volatility, _timeout=120,
         store=_store, resolver=_resolver,
         query=query, query_type=query_type,
         date_from=date_from, date_to=date_to)
@@ -1583,7 +1601,7 @@ def tool_portfolio_var(
     defense loss rates, identifies competitor threats from startability_surface,
     and estimates option-value-weighted VaR.
     """
-    raw = _safe_call(portfolio_var, _timeout=60,
+    raw = _safe_call(portfolio_var, _timeout=120,
         store=_store, resolver=_resolver,
         firm=firm, horizon_years=horizon_years,
         confidence=confidence, year=year)
@@ -1608,7 +1626,7 @@ def tool_tech_beta(
     and classifies technology as growth/cyclical/niche/mature.
     Includes peer comparison with same-section technologies.
     """
-    raw = _safe_call(tech_beta, _timeout=30,
+    raw = _safe_call(tech_beta, _timeout=120,
         store=_store, resolver=_resolver,
         query=query, query_type=query_type,
         benchmark=benchmark, date_from=date_from, date_to=date_to)
@@ -1632,7 +1650,7 @@ def tool_network_topology(
     clustering coefficient, hub patents, and technology communities.
     All graph algorithms are self-contained (no networkx).
     """
-    raw = _safe_call(network_topology, _timeout=60,
+    raw = _safe_call(network_topology, _timeout=120,
         store=_store, resolver=_resolver,
         cpc_prefix=cpc_prefix, firm=firm,
         max_patents=max_patents, year=year)
@@ -1658,7 +1676,7 @@ def tool_knowledge_flow(
     Identifies knowledge exporters (foundational tech) and importers (applied tech),
     spillover rates, and top flow pairs.
     """
-    raw = _safe_call(knowledge_flow, _timeout=60,
+    raw = _safe_call(knowledge_flow, _timeout=120,
         store=_store, resolver=_resolver,
         source_cpc=source_cpc, target_cpc=target_cpc,
         firm=firm, date_from=date_from, date_to=date_to, top_n=top_n)
@@ -1684,7 +1702,7 @@ def tool_network_resilience(
     targeted hub attacks. Returns collapse thresholds, vulnerability index,
     and critical patents whose expiration would fragment the network.
     """
-    raw = _safe_call(network_resilience, _timeout=60,
+    raw = _safe_call(network_resilience, _timeout=120,
         store=_store, resolver=_resolver,
         firm=firm, cpc_prefix=cpc_prefix,
         attack_mode=attack_mode, removal_steps=removal_steps,
@@ -1712,7 +1730,7 @@ def tool_tech_fusion_detector(
     emerging fusions across all domains. Returns fusion stage, bridge
     patents, and key players.
     """
-    raw = _safe_call(tech_fusion_detector, _timeout=60,
+    raw = _safe_call(tech_fusion_detector, _timeout=120,
         store=_store, resolver=_resolver,
         cpc_a=cpc_a, cpc_b=cpc_b,
         firm=firm, date_from=date_from, date_to=date_to,
@@ -1738,7 +1756,7 @@ def tool_tech_entropy(
     classify lifecycle stage: introduction, growth, mature, or declining.
     Identifies dominant players, new entrants, and consolidation trends.
     """
-    raw = _safe_call(tech_entropy, _timeout=60,
+    raw = _safe_call(tech_entropy, _timeout=120,
         store=_store, resolver=_resolver,
         cpc_prefix=cpc_prefix, query=query,
         date_from=date_from, date_to=date_to,
@@ -1749,6 +1767,30 @@ def tool_tech_entropy(
 
 
 # =====================================================================
+
+# =====================================================================
+# Tool 39: ip_due_diligence
+# =====================================================================
+@mcp.tool()
+def tool_ip_due_diligence(
+    target_firm: Annotated[str, Field(description="Target company name (any language) or stock ticker for IP due diligence.")],
+    investment_type: Annotated[str, Field(description='"venture" (early-stage), "growth" (scale-up), "buyout" (M&A), or "licensing" (IP licensing). Default: venture.')] = "venture",
+    benchmark_firms: Annotated[list[str] | None, Field(description="Optional list of competitor/peer firms to compare against.")] = None,
+) -> dict:
+    """Integrated IP due diligence for VC/PE investment analysis.
+
+    Combines patent portfolio analysis with market signals to generate
+    investment memo-style output. Evaluates technology moat, IP quality,
+    geographic coverage, competitive position, and market signals.
+    """
+    raw = _safe_call(ip_due_diligence, _tool_name="ip_due_diligence", _timeout=120,
+        store=_store, resolver=_resolver,
+        target_firm=target_firm, investment_type=investment_type,
+        benchmark_firms=benchmark_firms)
+    if isinstance(raw, dict) and "error" in raw:
+        return raw
+    return _enrich_firm_ids(raw)
+
 # Infrastructure: argument parsing, cache warm-up, HTTP app
 # =====================================================================
 
@@ -1905,7 +1947,7 @@ def _custom_http_app():
             "display_names_loaded": len(_FIRM_DISPLAY_NAMES),
         })
 
-    mcp_app = mcp.http_app(path="/mcp")
+    mcp_app = mcp.http_app(path="/mcp", stateless_http=True)
     return Starlette(
         routes=[
             Route("/health", health),
