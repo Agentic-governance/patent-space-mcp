@@ -1,0 +1,105 @@
+tool,test_id,status,failure_class,elapsed_sec,error,note
+patent_detail,real_01,PASS,,0.0,,JP-2024000002-A
+patent_detail,real_02,PASS,,0.0,,JP-2024000003-A
+patent_detail,real_03,PASS,,0.0,,JP-2024000004-A
+patent_detail,real_04,PASS,,0.0,,JP-2024000005-A
+patent_detail,real_05,PASS,,0.0,,JP-2024000006-A
+patent_detail,real_06,PASS,,0.0,,JP-2024000007-A
+patent_detail,real_07,PASS,,0.0,,JP-2024000008-A
+patent_detail,real_08,PASS,,0.0,,JP-2024000009-A
+patent_detail,real_09,PASS,,0.0,,JP-2024000010-A
+patent_detail,real_10,PASS,,0.0,,JP-2024000011-A
+patent_detail,real_11,PASS,,0.0,,JP-2024000012-A
+patent_detail,real_12,PASS,,0.0,,JP-2024000013-A
+patent_detail,real_13,PASS,,0.0,,JP-2024000014-A
+patent_detail,real_14,PASS,,0.0,,JP-2024000015-A
+patent_detail,real_15,PASS,,0.0,,JP-2024000016-A
+patent_detail,real_16,PASS,,0.0,,JP-2023000001-A
+patent_detail,real_17,PASS,,0.0,,JP-2023000002-A
+patent_detail,real_18,PASS,,0.0,,JP-2023000003-A
+patent_detail,real_19,PASS,,0.0,,JP-2023000004-A
+patent_detail,real_20,PASS,,0.0,,JP-2023000005-A
+patent_detail,real_21,PASS,,0.0,,JP-2023000006-A
+patent_detail,real_22,PASS,,0.0,,JP-2023000007-A
+patent_detail,real_23,PASS,,0.0,,JP-2023000008-A
+patent_detail,real_24,PASS,,0.0,,JP-2023000009-A
+patent_detail,real_25,PASS,,0.0,,JP-2023000010-A
+patent_detail,real_26,PASS,,0.0,,JP-2022000001-A
+patent_detail,real_27,PASS,,0.0,,JP-2022000002-A
+patent_detail,real_28,PASS,,0.0,,JP-2022000003-A
+patent_detail,real_29,PASS,,0.0,,JP-2022000004-A
+patent_detail,real_30,PASS,,0.0,,JP-2022000005-A
+patent_detail,real_31,PASS,,0.0,,JP-2022000006-A
+patent_detail,real_32,PASS,,0.0,,JP-2022000007-A
+patent_detail,real_33,PASS,,0.0,,JP-2022000008-A
+patent_detail,real_34,PASS,,0.0,,JP-2022000009-A
+patent_detail,real_35,PASS,,0.0,,JP-2022000010-A
+patent_detail,real_36,PASS,,0.0,,JP-7000003-B1
+patent_detail,real_37,PASS,,0.0,,JP-7000505-B1
+patent_detail,real_38,PASS,,0.0,,JP-7000508-B1
+patent_detail,real_39,PASS,,0.0,,JP-7000511-B1
+patent_detail,real_40,PASS,,0.0,,JP-7000513-B1
+patent_detail,real_41,PASS,,0.0,,JP-7000514-B1
+patent_detail,real_42,PASS,,0.0,,JP-7000517-B1
+patent_detail,real_43,PASS,,0.0,,JP-7000523-B1
+patent_detail,real_44,PASS,,0.0,,JP-7000524-B1
+patent_detail,real_45,PASS,,0.0,,JP-7000528-B1
+patent_detail,real_46,PASS,,0.0,,JP-7000534-B1
+patent_detail,real_47,PASS,,0.0,,JP-7000535-B1
+patent_detail,real_48,PASS,,0.0,,JP-7000536-B1
+patent_detail,real_49,PASS,,0.0,,JP-7000543-B1
+patent_detail,real_50,PASS,,0.0,,JP-7000546-B1
+entity_resolve,resolve_Toyota,PASS,,0.0,,
+entity_resolve,resolve_Sony,PASS,,0.0,,
+entity_resolve,resolve_Honda Motor,PASS,,0.0,,
+entity_resolve,resolve_7203,PASS,,0.0,,
+entity_resolve,resolve_Canon,PASS,,0.0,,
+firm_tech_vector,vec_Toyota,PASS,,0.0,,
+firm_tech_vector,vec_Sony,PASS,,0.0,,
+firm_tech_vector,vec_Honda,PASS,,0.0,,
+tech_clusters_list,all,PASS,,0.0,,
+tech_clusters_list,filter_H01,PASS,,0.0,,
+tech_fit,toyota_H01M_0,PASS,,0.0,,
+tech_fit,sony_G06N_0,PASS,,0.0,,
+startability,toyota_H01M_0,PASS,,0.0,,
+startability,sony_G06N_0,PASS,,0.0,,
+startability_ranking,by_firm_toyota,PASS,,0.0,,
+startability_ranking,by_tech_H01M_0,PASS,,0.01,,
+startability_delta,by_firm_toyota,PASS,,0.01,,
+gdelt_company_events,toyota,PASS,,0.01,,
+gdelt_company_events,sony,PASS,,0.0,,
+similar_firms,toyota,PASS,,16.53,,
+tech_gap,toyota_honda,PASS,,0.0,,
+patent_valuation,firm_toyota,PASS,,0.0,,
+patent_valuation,patent_JP7000003B1,PASS,,0.0,,
+patent_valuation,tech_H01M,FAIL,tool_bug,0.0,Invalid query_type: 'technology'. Use 'firm' or 'patent'.,
+tech_trend_alert,default,PASS,,0.03,,
+cross_domain_discovery,H01M,PASS,,2.78,,
+sales_prospect,toyota_H01M_0,PASS,,0.42,,
+bayesian_scenario,init_H01M_0,FAIL,infra_issue,30.0,TimeoutError: Thread timeout after 30s,
+ma_target,toyota_tech_gap,PASS,,2.01,,
+patent_option_value,patent_JP7000003B1,PASS,,0.05,,
+patent_option_value,firm_toyota,PASS,,25.3,,
+tech_volatility,H01M,PASS,,22.24,,
+tech_beta,H01M,PASS,,0.05,,
+patent_market_fusion,firm_toyota,PASS,,0.0,,
+patent_market_fusion,tech_G06N,PASS,,0.41,,
+patent_search,date_range_narrow,PASS,,0.11,,
+patent_search,cpc_G06N,FAIL,infra_issue,180.0,TimeoutError: Thread timeout after 180s,
+patent_search,query_battery,FAIL,infra_issue,0.01,DatabaseError: database disk image is malformed,
+firm_patent_portfolio,三菱電機,PASS,,139.81,,
+tech_landscape,G06N,FAIL,infra_issue,120.01,OperationalError: interrupted,
+applicant_network,toyota,FAIL,infra_issue,180.0,TimeoutError: Thread timeout after 180s,
+patent_compare,toyota_vs_honda,FAIL,infra_issue,180.0,TimeoutError: Thread timeout after 180s,
+adversarial_strategy,toyota_vs_honda,PASS,,19.25,,
+invention_intelligence,solid_state,FAIL,infra_issue,0.44,DatabaseError: database disk image is malformed,
+cross_border_similarity,firm_toyota,FAIL,infra_issue,180.0,TimeoutError: Thread timeout after 180s,
+portfolio_evolution,toyota,PASS,,0.13,,
+citation_network,patent_mode,PASS,,0.0,,
+tech_trend,H01M,PASS,,0.01,,
+portfolio_var,toyota,PASS,,51.49,,
+network_topology,cpc_G06N,FAIL,infra_issue,180.01,TimeoutError: Thread timeout after 180s,
+knowledge_flow,G06N_to_H01M,FAIL,infra_issue,180.03,TimeoutError: Thread timeout after 180s,
+network_resilience,cpc_G06N,FAIL,infra_issue,186.38,TimeoutError: Thread timeout after 180s,
+tech_fusion_detector,G06N_A61K,FAIL,infra_issue,180.01,TimeoutError: Thread timeout after 180s,
+tech_entropy,H01M,FAIL,infra_issue,180.01,TimeoutError: Thread timeout after 180s,
